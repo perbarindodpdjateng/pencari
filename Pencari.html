@@ -1,1 +1,218 @@
-<pelamar><body oncontextmenu=return!1 onkeydown=return!1 onmousedown=return!1><iframe loading=lazy frameborder=0 height=80% scrolling=no src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQs1HqUDG8NDjCmsjwabNQem2T0DSvSG-nogXjXXc6i_EupadfXX2JytzzJWdjSnXLiJZE_a5aS0tZn/pubhtml?gid=1170737086&single=true&widget=true&headers=false"width=100%></iframe><a loading=lazy href=https://forms.gle/urGH5mna6uPud2xm9 style="color:#873e23;background:#fff;font-family:CALIBRI,Arial,Sans-serif;font-size:12px;text-align:center;padding:0px 0;font-weight:400">Hapus Data Pelamar<br></a></body></pelamar>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Rekap Peserta</title>
+<style>
+:root{
+  --bg:#111;
+  --card:#161b22;
+  --accent:#58a6ff;
+  --font:clamp(9px, 1.8vw, 12px);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;width:100%;overflow:hidden}
+body{
+  background:var(--bg);
+  color:#fff;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  font-size:var(--font);
+  display:flex;
+  flex-direction:column;
+}
+/* ===== HEADER ===== */
+header{
+  flex:none;
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  padding:4px 0;
+}
+.header-3d{
+  background:var(--card);
+  padding:4px 8px;
+  border-radius:0;
+  flex:1 1 100px;
+  min-width:100px;
+}
+h1{font-size:var(--font);letter-spacing:0}
+.filter-3d{
+  background:var(--card);
+  border-radius:4px;
+  display:flex;
+  align-items:center;
+  padding:3px;
+  flex:1 1 120px;
+  min-width:120px;
+}
+.filter-3d input{
+  background:transparent;
+  border:none;
+  color:#fff;
+  outline:none;
+  width:100%;
+  font-size:var(--font);
+}
+.filter-3d input::placeholder{color:#8b949e}
+/* ===== TABEL ===== */
+main{
+  flex:1 1 0;
+  display:flex;
+  flex-direction:column;
+  padding:0 0 4px 0;
+}
+.table-box{
+  flex:1 1 0;
+  overflow:hidden;
+  background:var(--card);
+  border-radius:0;
+  padding:0px;
+}
+table{
+  width:100%;
+  height:100%;
+  border-collapse:collapse;
+  font-size:var(--font);
+  table-layout:flex;
+}
+thead{position:sticky;top:0;z-index:2}
+th{
+  background:#010409;
+  color:var(--accent);
+  padding:3px 2px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  border-bottom:1px solid #30363d;
+}
+td{
+  padding:3px 2px;
+  border-bottom:1px solid #30363d;
+  text-align:center;
+  word-break:break-word;
+}
+tbody tr:hover td{background:#21262dbb}
+/* ===== PAGINATOR ===== */
+footer{
+  flex:none;
+  display:flex;
+  justify-content:center;
+  padding:4px 0;
+}
+.pagi-3d{
+  display:flex;
+  gap:3px;
+  background:var(--card);
+  padding:3px;
+  border-radius:4px;
+}
+.pagi-3d button{
+  background:#0d419d;
+  border:none;
+  color:#fff;
+  padding:3px 6px;
+  border-radius:3px;
+  cursor:pointer;
+  font-size:var(--font);
+}
+.pagi-3d button:hover{background:#1f6feb}
+.pagi-3d button[disabled]{background:#30363d;cursor:not-allowed}
+/* ===== LOADER ===== */
+#loader{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);z-index:10;font-size:var(--font);
+}
+.dots::after{content:'';animation:dot 1.2s steps(3,end) infinite}
+@keyframes dot{0%{content:'.'}33%{content:'..'}66%{content:'...'}100%{content:''}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-3d"><h1>PENCARI</h1></div>
+  <div class="filter-3d">
+    <input id="filter" placeholder="Cari…" autocomplete="off"/>
+  </div>
+</header>
+
+<main>
+  <div id="loader" class="dots">Loading</div>
+  <div class="table-box">
+    <table>
+      <thead id="head"></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+</main>
+
+<footer>
+  <div class="pagi-3d" id="pagi"></div>
+</footer>
+
+<script>
+/* ===== CONFIG ===== */
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwVHk4nk5XTmP69xbUrSModHG796447Z0ex2RFtDh-L2zQ1OHoaxoTDyezFYjSGbes3/exec';
+const ROWS_PER_PAGE=8;
+const REFRESH_MS=10_000;
+
+/* ===== STATE ===== */
+let raw=[[]], filtered=[[]], page=1;
+
+/* ===== DOM ===== */
+const $=s=>document.querySelector(s);
+const head=$('#head'), body=$('#body'), pagi=$('#pagi'), filter=$('#filter'), loader=$('#loader');
+
+/* ===== FETCH ===== */
+async function pull(){
+  try{
+    const res=await fetch(SHEET_URL,{cache:'no-store'});
+    const j=await res.json();
+    if(JSON.stringify(j)!==JSON.stringify(raw)){
+      raw=j; applyFilter();
+    }
+  }catch(e){console.error(e)}
+}
+/* ===== RENDER ===== */
+function applyFilter(){
+  const q=filter.value.trim().toLowerCase();
+  filtered=q
+    ? [raw[0], ...raw.slice(1).filter(r=>r.some(c=>String(c).toLowerCase().includes(q)))]
+    : raw;
+  page=1; render();
+}
+function render(){
+  /* header */
+  head.innerHTML='<tr>'+filtered[0].map(v=>`<th>${v}</th>`).join('')+'</tr>';
+  /* body */
+  const start=(page-1)*ROWS_PER_PAGE+1;
+  const end=start+ROWS_PER_PAGE;
+  const slice=filtered.slice(start,end).map(r=>{
+    const cp=[...r];
+    if(cp[1]){
+      const d=new Date(cp[1]);
+      if(!isNaN(d)){
+        const dd=String(d.getDate()).padStart(2,'0');
+        const mm=String(d.getMonth()+1).padStart(2,'0');
+        cp[1]=`${dd}/${mm}`;
+      }
+    }
+    return cp;
+  });
+  body.innerHTML=slice.map(r=>`<tr>${r.map(c=>`<td>${cell(c)}</td>`).join('')}</tr>`).join('');
+  /* pagi */
+  const pages=Math.max(1,Math.ceil((filtered.length-1)/ROWS_PER_PAGE));
+  pagi.innerHTML=`
+    <button ${page===1?'disabled':''} onclick="page--;render()">‹</button>
+    <span style="padding:3px 5px">${page}/${pages}</span>
+    <button ${page===pages?'disabled':''} onclick="page++;render()">›</button>`;
+}
+function cell(v){
+  if(String(v).startsWith('http')) return `<a href="${v}" target="_blank" style="color:var(--accent)">🔰</a>`;
+  return v;
+}
+/* ===== INIT ===== */
+filter.addEventListener('input',applyFilter);
+(async()=>{await pull(); loader.style.display='none'; setInterval(pull,REFRESH_MS);})();
+</script>
+</body>
+</html>
