@@ -283,31 +283,31 @@ tbody tr:last-child td{border-bottom:none}
 
 /* KOLOM 0: INSTANSI - sisa ruang setelah kolom lain */
 th:nth-child(1),td:nth-child(1){
-  width:calc(100% - 35% - 90px - 30px);
+  width:calc(100% - 90px - 40px - 35%);
   min-width:120px;
 }
 
-/* KOLOM 1: FORMASI - 35% */
+/* KOLOM 1: BATAS - fixed 90px untuk tanggal */
 th:nth-child(2),td:nth-child(2){
-  width:35%;
-  min-width:150px;
-}
-
-/* KOLOM 2: BATAS - fixed 90px */
-th:nth-child(3),td:nth-child(3){
   width:90px;
   min-width:90px;
   max-width:90px;
   text-align:center;
 }
 
-/* KOLOM 3: URL - fixed 30px */
-th:nth-child(4),td:nth-child(4){
-  width:30px;
-  min-width:30px;
-  max-width:30px;
+/* KOLOM 2: URL - fixed 40px untuk icon */
+th:nth-child(3),td:nth-child(3){
+  width:40px;
+  min-width:40px;
+  max-width:40px;
   text-align:center;
   padding:10px 4px;
+}
+
+/* KOLOM 3: FORMASI - 35% */
+th:nth-child(4),td:nth-child(4){
+  width:35%;
+  min-width:150px;
 }
 
 /* KOLOM 4+: DIHILANGKAN */
@@ -349,13 +349,13 @@ th:nth-child(n+5),td:nth-child(n+5){
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:20px;
-  height:20px;
+  width:24px;
+  height:24px;
   background:rgba(88,166,255,0.1);
   color:var(--accent);
   text-decoration:none;
   border-radius:4px;
-  font-size:11px;
+  font-size:14px;
   border:1px solid rgba(88,166,255,0.2);
   transition:all 0.2s;
   flex-shrink:0;
@@ -567,28 +567,28 @@ th:nth-child(n+5),td:nth-child(n+5){
   th,td{padding:8px 6px;font-size:var(--fs-xs)}
   .badge{padding:2px 4px;font-size:8px}
   .link-btn{
-    width:18px;
-    height:18px;
-    font-size:10px;
+    width:20px;
+    height:20px;
+    font-size:12px;
   }
   /* Mobile: sesuaikan lebar kolom */
   th:nth-child(1),td:nth-child(1){
-    width:calc(100% - 40% - 80px - 28px);
+    width:calc(100% - 80px - 35px - 40%);
     min-width:100px;
   }
   th:nth-child(2),td:nth-child(2){
-    width:40%;
-    min-width:120px;
-  }
-  th:nth-child(3),td:nth-child(3){
     width:80px;
     min-width:80px;
     max-width:80px;
   }
+  th:nth-child(3),td:nth-child(3){
+    width:35px;
+    min-width:35px;
+    max-width:35px;
+  }
   th:nth-child(4),td:nth-child(4){
-    width:28px;
-    min-width:28px;
-    max-width:28px;
+    width:40%;
+    min-width:120px;
   }
 }
 
@@ -621,22 +621,22 @@ th:nth-child(n+5),td:nth-child(n+5){
   .page-numbers{display:none}
   /* Mobile kecil: sesuaikan lebar kolom */
   th:nth-child(1),td:nth-child(1){
-    width:calc(100% - 45% - 70px - 26px);
+    width:calc(100% - 70px - 30px - 45%);
     min-width:80px;
   }
   th:nth-child(2),td:nth-child(2){
-    width:45%;
-    min-width:100px;
-  }
-  th:nth-child(3),td:nth-child(3){
     width:70px;
     min-width:70px;
     max-width:70px;
   }
+  th:nth-child(3),td:nth-child(3){
+    width:30px;
+    min-width:30px;
+    max-width:30px;
+  }
   th:nth-child(4),td:nth-child(4){
-    width:26px;
-    min-width:26px;
-    max-width:26px;
+    width:45%;
+    min-width:100px;
   }
   th,td{padding:6px 4px}
 }
@@ -664,7 +664,7 @@ th:nth-child(n+5),td:nth-child(n+5){
   </div>
 
   <!-- Tombol Upload Loker - Sejajar dengan stats -->
-  <a href="https://forms.gle/HCou7PKxVHy8ZYhh8" target="_blank" class="upload-btn" title="Upload Loker Baru">
+  <a href="https://forms.gle/HCou7PKxVHy8ZYhh8 " target="_blank" class="upload-btn" title="Upload Loker Baru">
     Upload Loker
   </a>
 
@@ -705,7 +705,7 @@ th:nth-child(n+5),td:nth-child(n+5){
 </div>
 
 <script>
-const SHEET_URL='https://script.google.com/macros/s/AKfycbwVHk4nk5XTmP69xbUrSModHG796447Z0ex2RFtDh-L2zQ1OHoaxoTDyezFYjSGbes3/exec';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwVHk4nk5XTmP69xbUrSModHG796447Z0ex2RFtDh-L2zQ1OHoaxoTDyezFYjSGbes3/exec ';
 const ROWS_PER_PAGE=10,REFRESH_MS=10000;
 let raw=[[]],filtered=[[]],page=1,sortCol=-1,sortAsc=true,lastHash='';
 
@@ -719,11 +719,55 @@ const showToast=(m,t='success')=>{
   toast.className=`toast toast-${t} show`;
   setTimeout(()=>toast.classList.remove('show'),2500);
 };
+
+// Format tanggal ke dd/mm/yyyy - HANDLE SEMUA FORMAT
 const fmtDate=s=>{
   if(!s)return'-';
-  const d=new Date(s);
-  if(isNaN(d))return s;
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  
+  let day,month,year;
+  const str=String(s).trim();
+  
+  // Format ISO: 2025-12-09T01:43:07.000Z atau 2025/12/09T01:43:07.000Z
+  // Format: yyyy-mm-dd atau yyyy/mm/dd dengan timestamp
+  const isoMatch=str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s]/);
+  if(isoMatch){
+    year=isoMatch[1];
+    month=isoMatch[2].padStart(2,'0');
+    day=isoMatch[3].padStart(2,'0');
+    return `${day}/${month}/${year}`;
+  }
+  
+  // Format ISO tanpa timestamp: 2025-12-09 atau 2025/12/09
+  const dateOnlyMatch=str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(dateOnlyMatch){
+    year=dateOnlyMatch[1];
+    month=dateOnlyMatch[2].padStart(2,'0');
+    day=dateOnlyMatch[3].padStart(2,'0');
+    return `${day}/${month}/${year}`;
+  }
+  
+  // Format Indonesia: dd/mm/yyyy atau dd-mm-yyyy
+  if(str.includes('/')||str.includes('-')){
+    const parts=str.split(/[\/\-]/);
+    if(parts.length>=3){
+      day=parts[0].padStart(2,'0');
+      month=parts[1].padStart(2,'0');
+      year=parts[2].length===2?'20'+parts[2]:parts[2];
+      return `${day}/${month}/${year}`;
+    }
+  }
+  
+  // Coba parse sebagai Date object
+  const d=new Date(str);
+  if(!isNaN(d.getTime())){
+    day=String(d.getDate()).padStart(2,'0');
+    month=String(d.getMonth()+1).padStart(2,'0');
+    year=d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  
+  // Jika semua gagal, return as-is
+  return str;
 };
 
 async function pull(showLoad=false){
@@ -769,7 +813,7 @@ function updateStats(){
 
 function render(){
   // Render hanya 4 kolom (0-3), kolom 4+ disembunyikan
-  // Index: 0=INSTANSI, 1=FORMASI, 2=BATAS, 3=URL
+  // Index: 0=INSTANSI, 1=BATAS (tanggal), 2=URL, 3=FORMASI
   const maxCols=4;
   const displayHeaders=filtered[0].slice(0,maxCols);
   
@@ -792,29 +836,28 @@ function fmtCell(v,i){
   if(!v)return'-';
   const s=String(v);
   
-  // URL di kolom ke-4 (index 3), hanya simbol 🔗
-  if(i===3 && s.startsWith('http')){
-    return`<a href="${v}" target="_blank" class="link-btn" title="${v}"></a>`;
+  // KOLOM 1 (index 1): BATAS - Format tanggal dd/mm/yyyy selalu 2 digit
+  if(i===1){
+    return`<span class="date-cell">${fmtDate(v)}</span>`;
   }
   
-  // Format tanggal untuk kolom BATAS (index 2)
+  // KOLOM 2 (index 2): URL - Hanya simbol 🔗
   if(i===2){
-    // Jika format tanggal, tampilkan compact
-    if(s.includes('/') || s.includes('-')){
-      return`<span class="date-cell">${fmtDate(v)}</span>`;
+    if(s.startsWith('http')){
+      return`<a href="${v}" target="_blank" class="link-btn" title="Buka link"></a>`;
     }
-    return s;
+    return'-';
   }
   
-  // Status badges untuk kolom lain
+  // KOLOM 3 (index 3): FORMASI - Text wrap untuk teks panjang
+  if(i===3 && s.length>50){
+    return`<div class="text-wrap" title="${s}">${s}</div>`;
+  }
+  
+  // KOLOM 0 (index 0): INSTANSI - Status badges jika ada
   const map={'aktif':'badge-active','active':'badge-active','pending':'badge-pending','proses':'badge-pending','diterima':'badge-active','ditolak':'badge-pending'};
   if(map[s.toLowerCase()]){
     return`<span class="badge ${map[s.toLowerCase()]}">${v}</span>`;
-  }
-  
-  // Teks panjang di-wrap untuk FORMASI (index 1)
-  if(i===1 && s.length>50){
-    return`<div class="text-wrap" title="${s}">${s}</div>`;
   }
   
   return s;
