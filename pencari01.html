@@ -283,16 +283,17 @@ tbody tr:last-child td{border-bottom:none}
 
 /* KOLOM 0: INSTANSI - sisa ruang setelah kolom lain */
 th:nth-child(1),td:nth-child(1){
-  width:calc(100% - 90px - 40px - 35%);
+  width:calc(100% - 50px - 40px - 35%);
   min-width:120px;
 }
 
-/* KOLOM 1: BATAS - fixed 90px untuk tanggal */
+/* KOLOM 1: BATAS - fixed 50px (8 karakter) dengan wrap */
 th:nth-child(2),td:nth-child(2){
-  width:90px;
-  min-width:90px;
-  max-width:90px;
+  width:50px;
+  min-width:50px;
+  max-width:50px;
   text-align:center;
+  padding:6px 2px;
 }
 
 /* KOLOM 2: URL - fixed 40px untuk icon */
@@ -337,11 +338,19 @@ th:nth-child(n+5),td:nth-child(n+5){
   color:var(--warning);
   border:1px solid rgba(210,153,34,0.3);
 }
+
+/* Date cell dengan wrap - max 8 karakter */
 .date-cell{
   font-family:monospace;
-  font-size:var(--fs-xs);
+  font-size:9px;
   color:var(--accent);
-  white-space:nowrap;
+  line-height:1.2;
+  display:block;
+  max-width:100%;
+  overflow-wrap:break-word;
+  word-wrap:break-word;
+  word-break:break-all;
+  white-space:normal;
 }
 
 /* Link Button - Hanya simbol 🔗 */
@@ -573,13 +582,14 @@ th:nth-child(n+5),td:nth-child(n+5){
   }
   /* Mobile: sesuaikan lebar kolom */
   th:nth-child(1),td:nth-child(1){
-    width:calc(100% - 80px - 35px - 40%);
+    width:calc(100% - 45px - 35px - 40%);
     min-width:100px;
   }
   th:nth-child(2),td:nth-child(2){
-    width:80px;
-    min-width:80px;
-    max-width:80px;
+    width:45px;
+    min-width:45px;
+    max-width:45px;
+    padding:4px 1px;
   }
   th:nth-child(3),td:nth-child(3){
     width:35px;
@@ -590,6 +600,7 @@ th:nth-child(n+5),td:nth-child(n+5){
     width:40%;
     min-width:120px;
   }
+  .date-cell{font-size:8px;}
 }
 
 @media(max-width:480px){
@@ -621,13 +632,14 @@ th:nth-child(n+5),td:nth-child(n+5){
   .page-numbers{display:none}
   /* Mobile kecil: sesuaikan lebar kolom */
   th:nth-child(1),td:nth-child(1){
-    width:calc(100% - 70px - 30px - 45%);
+    width:calc(100% - 40px - 30px - 45%);
     min-width:80px;
   }
   th:nth-child(2),td:nth-child(2){
-    width:70px;
-    min-width:70px;
-    max-width:70px;
+    width:40px;
+    min-width:40px;
+    max-width:40px;
+    padding:4px 1px;
   }
   th:nth-child(3),td:nth-child(3){
     width:30px;
@@ -639,6 +651,7 @@ th:nth-child(n+5),td:nth-child(n+5){
     min-width:100px;
   }
   th,td{padding:6px 4px}
+  .date-cell{font-size:8px;}
 }
 </style>
 </head>
@@ -648,7 +661,7 @@ th:nth-child(n+5),td:nth-child(n+5){
   <div class="brand">
     <div class="brand-icon">🏦</div>
     <div>
-      <h1>PECARI LOKER</h1>
+      <h1>LOKER BPR/BPRS</h1>
     </div>
   </div>
   
@@ -664,8 +677,8 @@ th:nth-child(n+5),td:nth-child(n+5){
   </div>
 
   <!-- Tombol Upload Loker - Sejajar dengan stats -->
-  <a href="https://forms.gle/RiUBQk2sSZHyLUNy5 " target="_blank" class="upload-btn" title="Upload Loker Baru">
-    Upload Lamaran
+  <a href="https://forms.gle/HCou7PKxVHy8ZYhh8 " target="_blank" class="upload-btn" title="Upload Loker Baru">
+    Upload Loker
   </a>
 
   <div class="filter-box" id="filter-box">
@@ -706,7 +719,7 @@ th:nth-child(n+5),td:nth-child(n+5){
 
 <script>
 const SHEET_URL='https://script.google.com/macros/s/AKfycbwVHk4nk5XTmP69xbUrSModHG796447Z0ex2RFtDh-L2zQ1OHoaxoTDyezFYjSGbes3/exec ';
-const ROWS_PER_PAGE=10,REFRESH_MS=10000;
+const ROWS_PER_PAGE=5,REFRESH_MS=10000;
 let raw=[[]],filtered=[[]],page=1,sortCol=-1,sortAsc=true,lastHash='';
 
 const $=s=>document.querySelector(s);
@@ -720,7 +733,7 @@ const showToast=(m,t='success')=>{
   setTimeout(()=>toast.classList.remove('show'),2500);
 };
 
-// Format tanggal ke dd/mm/yyyy - HANDLE SEMUA FORMAT
+// Format tanggal ke dd/mm/yyyy dengan wrap untuk kolom sempit
 const fmtDate=s=>{
   if(!s)return'-';
   
@@ -728,13 +741,12 @@ const fmtDate=s=>{
   const str=String(s).trim();
   
   // Format ISO: 2025-12-09T01:43:07.000Z atau 2025/12/09T01:43:07.000Z
-  // Format: yyyy-mm-dd atau yyyy/mm/dd dengan timestamp
   const isoMatch=str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})[T\s]/);
   if(isoMatch){
     year=isoMatch[1];
     month=isoMatch[2].padStart(2,'0');
     day=isoMatch[3].padStart(2,'0');
-    return `${day}/${month}/${year}`;
+    return {day,month,year};
   }
   
   // Format ISO tanpa timestamp: 2025-12-09 atau 2025/12/09
@@ -743,7 +755,7 @@ const fmtDate=s=>{
     year=dateOnlyMatch[1];
     month=dateOnlyMatch[2].padStart(2,'0');
     day=dateOnlyMatch[3].padStart(2,'0');
-    return `${day}/${month}/${year}`;
+    return {day,month,year};
   }
   
   // Format Indonesia: dd/mm/yyyy atau dd-mm-yyyy
@@ -753,7 +765,7 @@ const fmtDate=s=>{
       day=parts[0].padStart(2,'0');
       month=parts[1].padStart(2,'0');
       year=parts[2].length===2?'20'+parts[2]:parts[2];
-      return `${day}/${month}/${year}`;
+      return {day,month,year};
     }
   }
   
@@ -763,10 +775,10 @@ const fmtDate=s=>{
     day=String(d.getDate()).padStart(2,'0');
     month=String(d.getMonth()+1).padStart(2,'0');
     year=d.getFullYear();
-    return `${day}/${month}/${year}`;
+    return {day,month,year};
   }
   
-  // Jika semua gagal, return as-is
+  // Jika semua gagal, return as-is tanpa wrap
   return str;
 };
 
@@ -836,9 +848,15 @@ function fmtCell(v,i){
   if(!v)return'-';
   const s=String(v);
   
-  // KOLOM 1 (index 1): BATAS - Format tanggal dd/mm/yyyy selalu 2 digit
+  // KOLOM 1 (index 1): BATAS - Format tanggal dengan wrap (max 8 char)
   if(i===1){
-    return`<span class="date-cell">${fmtDate(v)}</span>`;
+    const dateObj=fmtDate(v);
+    if(typeof dateObj==='object'){
+      // Tampilkan dengan wrap: dd/mm di atas, yyyy di bawah
+      // Total max 8 karakter per baris
+      return`<span class="date-cell">${dateObj.day}/${dateObj.month}<br/>${dateObj.year}</span>`;
+    }
+    return`<span class="date-cell">${dateObj}</span>`;
   }
   
   // KOLOM 2 (index 2): URL - Hanya simbol 🔗
